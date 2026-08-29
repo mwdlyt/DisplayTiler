@@ -10,6 +10,8 @@ Windows are organised by application instead of thrown into one flat strip, each
 DWM preview, and every card is tinted with its own application's colour so you can find the one you
 want by shape and hue before you have finished reading any titles.
 
+<img src="assets/screenshot.png" alt="The DisplayTiler switcher, showing windows grouped by application with per-application accent colours" width="100%">
+
 </div>
 
 ---
@@ -38,6 +40,10 @@ Download the latest [release](https://github.com/mwdlyt/DisplayTiler/releases):
 
 Both are self-contained: **no .NET installation is required.** Windows 11 (build 22000) or newer,
 64-bit.
+
+> **Windows will warn you.** The download is not code-signed, so SmartScreen shows *"Windows
+> protected your PC"*. Choose **More info → Run anyway**. This is what an unsigned build looks like,
+> not a verdict on the file; a signing certificate is an annual cost this project does not carry.
 
 ## Using it
 
