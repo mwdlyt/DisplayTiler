@@ -79,7 +79,11 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
     ValueName: "{#AppName}"; Flags: deletevalue uninsdeletevalue; Tasks: not startupentry
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Start {#AppName} now"; Flags: nowait postinstall skipifsilent
+; Opens Settings rather than starting silently to the tray. DisplayTiler has no main window, so a
+; silent start leaves the installer finishing with nothing on screen and no confirmation that it
+; worked. The Settings dialog doubles as that confirmation and as the first look at what is
+; configurable; closing it returns the app to the tray.
+Filename: "{app}\{#AppExeName}"; Parameters: "--settings"; Description: "Start {#AppName} and open Settings"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 ; The running instance holds its own executable open, and it owns a system-wide keyboard hook.

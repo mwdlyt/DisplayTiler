@@ -134,6 +134,14 @@ internal static class Program
         tray.ContextMenuStrip = menu;
         RefreshUi();
 
+        // Opened by the installer on completion. Without it a fresh install finishes with no visible
+        // sign that anything happened: the app has no main window, so it goes straight to the tray
+        // and the only way to tell it worked is to try Alt+Tab and hope.
+        // ShowDialog runs its own message loop, so the tray icon stays live while it is up, and
+        // Application.Run below takes over once it closes.
+        if (args.Contains("--settings", StringComparer.OrdinalIgnoreCase))
+            ShowSettings();
+
         if (args.Contains("--preview", StringComparer.OrdinalIgnoreCase))
             controller.ShowPreview();
 
