@@ -86,13 +86,26 @@ jobs:
             -DestinationPath "dist/DisplayTiler-${{ steps.version.outputs.version }}-portable-win-x64.zip" `
             -Force
 
-      - name: Upload build artifacts
+      # Two artifacts, not one. A manual run is how the packaging gets checked before a tag, and
+      # bundling both downloads together made that check hand back a zip containing an installer and
+      # a second zip. On a real release these are already separate assets, so this only affects the
+      # dry run - but the dry run is exactly where the output should be unambiguous.
+      - name: Upload installer
         uses: actions/upload-artifact@v5
         with:
-          name: DisplayTiler-${{ steps.version.outputs.version }}
-          path: |
-            dist/installer/*.exe
-            dist/*.zip
+          name: DisplayTiler-${{ steps.version.outputs.version }}-installer
+          path: dist/installer/*.exe
+          if-no-files-found: error
+
+      # The folder, not the .zip built above: GitHub zips every artifact on download, so uploading
+      # the already-zipped file would hand back a zip inside a zip. Pointing at the folder makes
+      # GitHub's own archive the portable download. The .zip itself is still built, because a release
+      # asset has to be a real file rather than an artifact.
+      - name: Upload portable build
+        uses: actions/upload-artifact@v5
+        with:
+          name: DisplayTiler-${{ steps.version.outputs.version }}-portable-win-x64
+          path: dist/portable/*
           if-no-files-found: error
 
       - name: Publish release
