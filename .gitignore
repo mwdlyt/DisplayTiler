@@ -1,0 +1,14 @@
+# Build output
+**/bin/
+**/obj/
+dist/
+
+# Visual Studio / Rider / VS Code
+*.user
+*.suo
+.vs/
+.idea/
+*.DotSettings.user
+
+# Local artefacts
+*.log

@@ -1,0 +1,107 @@
+name: release
+
+# Tagging v1.2.3 publishes a release carrying both the portable executable and an installer.
+# The same job runs on demand so the packaging can be exercised without cutting a release.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          # A tag drives the version; a manual run falls back to whatever the project declares, so
+          # the two paths never disagree about what is being built.
+          if ($env:GITHUB_REF -like 'refs/tags/v*') {
+            $version = $env:GITHUB_REF -replace '^refs/tags/v', ''
+          } else {
+            $csproj = [xml](Get-Content native/DisplayTiler.Host/DisplayTiler.Host.csproj)
+            $version = ($csproj.Project.PropertyGroup.Version | Where-Object { $_ }) | Select-Object -First 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "building version $version"
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          dotnet publish native/DisplayTiler.Host/DisplayTiler.Host.csproj `
+            -c Release `
+            -o dist/win-x64 `
+            -p:Version=${{ steps.version.outputs.version }} `
+            --nologo
+          if ($LASTEXITCODE -ne 0) { throw "publish failed" }
+          Get-ChildItem dist/win-x64 | Format-Table Name, Length
+
+      - name: Verify the published executable
+        shell: pwsh
+        run: |
+          # A self-contained single file that silently lost its icon or version stamp still "builds",
+          # so check the things a download is actually judged by before publishing it.
+          $exe = Get-Item dist/win-x64/DisplayTiler.exe
+          $info = $exe.VersionInfo
+          Write-Host "size            : $([math]::Round($exe.Length/1MB,1)) MB"
+          Write-Host "file version    : $($info.FileVersion)"
+          Write-Host "product         : $($info.ProductName)"
+          if (-not $info.ProductName) { throw "version resource is missing" }
+          Add-Type -AssemblyName System.Drawing
+          $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe.FullName)
+          if (-not $icon) { throw "executable has no icon" }
+          Write-Host "icon            : ok"
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          # Inno Setup ships on the windows runner image; install it only if that ever changes.
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --no-progress -y
+          }
+          & $iscc "installer\DisplayTiler.iss" "/DAppVersion=${{ steps.version.outputs.version }}"
+          if ($LASTEXITCODE -ne 0) { throw "installer build failed" }
+          Get-ChildItem dist/installer | Format-Table Name, Length
+
+      - name: Package the portable build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/portable | Out-Null
+          Copy-Item dist/win-x64/DisplayTiler.exe dist/portable/
+          Copy-Item README.md, LICENSE dist/portable/
+          Compress-Archive -Path dist/portable/* `
+            -DestinationPath "dist/DisplayTiler-${{ steps.version.outputs.version }}-portable-win-x64.zip" `
+            -Force
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DisplayTiler-${{ steps.version.outputs.version }}
+          path: |
+            dist/installer/*.exe
+            dist/*.zip
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: DisplayTiler ${{ steps.version.outputs.version }}
+          draft: false
+          generate_release_notes: true
+          files: |
+            dist/installer/*.exe
+            dist/*.zip

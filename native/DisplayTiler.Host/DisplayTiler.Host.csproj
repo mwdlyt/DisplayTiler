@@ -1,0 +1,93 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AssemblyName>DisplayTiler</AssemblyName>
+    <RootNamespace>DisplayTiler.Host</RootNamespace>
+    <ApplicationIcon>DisplayTiler.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- Shown in the file properties dialog, in Task Manager, and on the installed-apps list. -->
+  <PropertyGroup>
+    <Product>DisplayTiler</Product>
+    <AssemblyTitle>DisplayTiler</AssemblyTitle>
+    <Description>A grouped Alt+Tab replacement for Windows 11.</Description>
+    <Company>DisplayTiler</Company>
+    <Copyright>Copyright (c) 2026 DisplayTiler contributors</Copyright>
+    <Version>1.0.0</Version>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <!--
+    Tuned for a process that sits idle in the notification area for days at a time.
+
+    Server GC would reserve a heap per core and the background GC thread costs both memory and
+    periodic wake-ups, neither of which buys anything for an app whose steady state allocates nothing
+    at all: it wakes only when the switcher is opened.
+
+    Nothing here is culture-sensitive - every string comparison in the codebase is ordinal - so ICU
+    is dead weight. Dropping it removes roughly 30 MB from the self-contained output and the work of
+    loading it at every start.
+  -->
+  <PropertyGroup>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <EventSourceSupport>false</EventSourceSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <!--
+    Publish shape: a single self-contained executable, so a download runs on a clean Windows 11
+    machine with no .NET install.
+
+    EnableCompressionInSingleFile is deliberately OFF. It is tempting - it halves the file - but a
+    compressed bundle has to be decompressed into private, anonymous memory at every launch, whereas
+    an uncompressed one is memory-mapped straight from disk and its pages stay file-backed and
+    discardable. Measured on this app at idle:
+
+        compressed + R2R      50.7 MB file    73.8 MB private    0.28 s startup CPU
+        uncompressed + R2R   114.6 MB file    14.6 MB private    0.09 s startup CPU
+
+    Five times the resident memory, permanently, to save a one-time download. That is the wrong way
+    round for a process that sits in the notification area for days. The download stays small anyway,
+    because the installer and the portable zip both compress the executable on disk - paid once at
+    install time instead of on every start.
+
+    ReadyToRun stays on: it costs about 12 MB of file and 3.6 MB of memory, and it measurably
+    shortens the cold start.
+  -->
+  <PropertyGroup>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DisplayTiler.Core\DisplayTiler.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Explicit LogicalName so the lookup in TrayIconFactory does not depend on RootNamespace. -->
+    <EmbeddedResource Include="DisplayTiler.ico">
+      <LogicalName>DisplayTiler.ico</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

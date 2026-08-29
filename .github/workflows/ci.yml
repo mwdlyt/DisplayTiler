@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        shell: pwsh
+        run: dotnet build native/DisplayTiler.Host/DisplayTiler.Host.csproj -c Release --nologo -warnaserror
+
+      - name: Publish
+        shell: pwsh
+        run: dotnet publish native/DisplayTiler.Host/DisplayTiler.Host.csproj -c Release -o dist/win-x64 --nologo
+
+      - name: Check the published output
+        shell: pwsh
+        run: |
+          # Release publishes should contain exactly one file. A stray .pdb here means symbol
+          # generation crept back in and is about to be shipped to users.
+          $files = Get-ChildItem dist/win-x64
+          $files | Format-Table Name, Length
+          if ($files.Count -ne 1) { throw "expected a single published file, found $($files.Count)" }
+          if ($files[0].Name -ne 'DisplayTiler.exe') { throw "unexpected file: $($files[0].Name)" }
+
+      - name: Check the icon is current
+        shell: pwsh
+        run: |
+          # DisplayTiler.ico is generated from assets/DisplayTiler.png and committed. If someone
+          # updates the artwork without re-running the generator, the shipped icon silently goes
+          # stale, so regenerate here and fail if the result differs from what is checked in.
+          $committed = (Get-FileHash native/DisplayTiler.Host/DisplayTiler.ico -Algorithm SHA256).Hash
+          ./tools/Build-Icon.ps1
+          $rebuilt = (Get-FileHash native/DisplayTiler.Host/DisplayTiler.ico -Algorithm SHA256).Hash
+          if ($committed -ne $rebuilt) {
+            throw "DisplayTiler.ico is out of date - run tools/Build-Icon.ps1 and commit the result"
+          }
+          Write-Host "icon is up to date"
