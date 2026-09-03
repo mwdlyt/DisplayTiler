@@ -19,7 +19,11 @@ jobs:
 
       - name: Build
         shell: pwsh
-        run: dotnet build native/DisplayTiler.Host/DisplayTiler.Host.csproj -c Release --nologo -warnaserror
+        run: dotnet build DisplayTiler.sln -c Release --nologo -warnaserror
+
+      - name: Test
+        shell: pwsh
+        run: dotnet test DisplayTiler.sln -c Release --nologo --no-build
 
       - name: Publish
         shell: pwsh

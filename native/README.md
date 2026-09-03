@@ -27,6 +27,7 @@ debug build that owns `Alt`+`Tab`.
 | `Services/WindowActivator.cs` | Raising a window without blocking on an application that has stopped pumping messages. |
 | `Services/SwitcherOverlay.cs` | Layout, painting, DWM thumbnails, per-application accent colours. `UiScale` is the single size dial. |
 | `Services/WindowCatalog.cs` | Enumerates eligible top-level windows and resolves their owning process. |
+| `../DisplayTiler.Core.Tests/` | Covers the grouping and naming rules. The rest of the codebase talks to Win32 and is checked by running it. |
 
 ## Things that will bite you
 

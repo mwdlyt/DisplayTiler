@@ -115,9 +115,13 @@ Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) on Windows.
 git clone https://github.com/mwdlyt/DisplayTiler.git
 cd DisplayTiler
 
-dotnet build native\DisplayTiler.Host\DisplayTiler.Host.csproj -c Release
+dotnet build DisplayTiler.sln -c Release
+dotnet test DisplayTiler.sln -c Release
 dotnet publish native\DisplayTiler.Host\DisplayTiler.Host.csproj -c Release -o dist\win-x64
 ```
+
+Building the solution covers both projects and the tests. Publishing targets the host project on its
+own, because that is the only one that produces a shipped binary.
 
 The published `dist\win-x64\DisplayTiler.exe` is a single self-contained file.
 
