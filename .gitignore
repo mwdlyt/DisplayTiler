@@ -12,3 +12,6 @@ dist/
 
 # Local artefacts
 *.log
+
+# Internal design notes, not for publication
+DISPLAYTILER_SPEC.md

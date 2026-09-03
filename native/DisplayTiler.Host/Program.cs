@@ -49,8 +49,8 @@ internal static class Program
             holdBehavior.Checked = settings.ActivateOnAltRelease;
             stickyBehavior.Checked = !settings.ActivateOnAltRelease;
             tray.Text = settings.AltTabReplacementEnabled
-                ? "DisplayTiler — Alt+Tab replacement on"
-                : "DisplayTiler — Alt+Tab replacement off";
+                ? "DisplayTiler - Alt+Tab replacement on"
+                : "DisplayTiler - Alt+Tab replacement off";
         }
 
         bool SaveSettings(bool showError = true)

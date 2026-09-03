@@ -59,7 +59,7 @@ While the switcher is open:
 | `Enter` | Activate the selected window |
 | `Escape` | Dismiss without switching |
 | `Delete` or `Ctrl`+`W` | Close the selected window |
-| `Ctrl`+`Shift`+`F12` | **Emergency release** — hands `Alt`+`Tab` straight back to Windows |
+| `Ctrl`+`Shift`+`F12` | **Emergency release**. Hands `Alt`+`Tab` straight back to Windows |
 
 Those are the only keys DisplayTiler consumes, and only while the switcher is actually on screen.
 No plain letter key is ever intercepted.
@@ -86,7 +86,7 @@ thread whose entire job is a message loop and a fast classification function.
 
 **A modifier key-up is never swallowed.** If the release of `Alt` does not reach the rest of the
 system, every application goes on believing `Alt` is held: letters stop typing because they become
-menu accelerators, and mouse clicks turn into `Alt`+clicks — which is why a double-click on a folder
+menu accelerators, and mouse clicks turn into `Alt`+clicks, which is why a double-click on a folder
 would open Properties instead of the folder. Dismissing the switcher is DisplayTiler's business; the
 release of `Alt` belongs to everyone. Key-downs that *are* consumed have their matching key-up
 consumed with them, on a short expiry, so no application is left holding half a keystroke.
@@ -104,8 +104,8 @@ messages will hang the caller for as long as that application stays stuck. Targe
 not answering; `SetWindowPos` uses `SWP_ASYNCWINDOWPOS` for the same reason.
 
 **Injected input passes straight through.** Synthetic keystrokes belong to accessibility tools,
-remote desktop, and anything trying to clear a stuck modifier — swallowing those is how such a tool
-ends up silently doing nothing.
+remote desktop, and anything trying to clear a stuck modifier. Swallowing those is how such a
+tool ends up silently doing nothing.
 
 ## Building from source
 

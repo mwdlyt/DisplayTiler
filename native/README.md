@@ -8,7 +8,7 @@ dotnet run --project native/DisplayTiler.Host
 ```
 
 The process has no main window and runs in the notification area, so the terminal staying open is
-expected. `Ctrl`+`Shift`+`F12` is the emergency fail-open chord — worth knowing before you run a
+expected. `Ctrl`+`Shift`+`F12` is the emergency fail-open chord, worth knowing before you run a
 debug build that owns `Alt`+`Tab`.
 
 ## Projects
@@ -22,7 +22,7 @@ debug build that owns `Alt`+`Tab`.
 
 | | |
 |---|---|
-| `Services/KeyboardHook.cs` | Owns the `WH_KEYBOARD_LL` hook on a dedicated thread. Read the class comment before changing anything here — this is the code that can freeze the whole desktop. |
+| `Services/KeyboardHook.cs` | Owns the `WH_KEYBOARD_LL` hook on a dedicated thread. Read the class comment before changing anything here: this is the code that can freeze the whole desktop. |
 | `Services/SwitcherController.cs` | Decides which keystrokes are consumed, and when the hook must fail open. |
 | `Services/WindowActivator.cs` | Raising a window without blocking on an application that has stopped pumping messages. |
 | `Services/SwitcherOverlay.cs` | Layout, painting, DWM thumbnails, per-application accent colours. `UiScale` is the single size dial. |
@@ -41,5 +41,4 @@ debug build that owns `Alt`+`Tab`.
 ## Not implemented yet
 
 Per-monitor taskbars, window-placement rules, virtual-desktop tracking, and a `SetWinEventHook`
-activity catalog to replace the snapshot-time ordering. See
-[`DISPLAYTILER_SPEC.md`](../DISPLAYTILER_SPEC.md).
+activity catalog to replace the snapshot-time ordering.
